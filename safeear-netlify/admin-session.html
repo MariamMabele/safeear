@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SafeEar — Session Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{--sage:#1D9E75;--sage-dark:#0F6E56;--sage-light:#E1F5EE;--warm:#f7f4ef;--border:#e4e0d8}
+    body{font-family:'DM Sans',sans-serif;background:var(--warm);min-height:100vh;padding:32px 20px}
+    .wrap{max-width:560px;margin:0 auto}
+    .logo{font-family:'DM Serif Display',serif;font-size:1.5rem;color:var(--sage);margin-bottom:4px}
+    .logo span{color:var(--sage-dark)}
+    .admin-badge{font-size:11px;background:var(--sage-light);color:var(--sage-dark);padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:32px;font-weight:500}
+    h1{font-family:'DM Serif Display',serif;font-size:1.8rem;letter-spacing:-0.5px;margin-bottom:6px}
+    .sub{color:#6b7280;font-size:14px;margin-bottom:28px;font-weight:300;line-height:1.6}
+
+    .card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:16px}
+    .card h2{font-size:13px;font-weight:500;text-transform:uppercase;letter-spacing:1.5px;color:var(--sage);margin-bottom:18px}
+
+    label{display:block;font-size:12px;font-weight:500;color:#555;margin-bottom:6px;margin-top:14px}
+    label:first-of-type{margin-top:0}
+    input,select{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:'DM Sans',sans-serif;background:#fafaf8;outline:none;transition:border-color 0.2s}
+    input:focus,select:focus{border-color:var(--sage);background:#fff}
+
+    .type-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:6px}
+    .type-btn{padding:12px 8px;border-radius:10px;border:2px solid var(--border);background:#fff;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;transition:all 0.15s;text-align:center}
+    .type-btn:hover{border-color:var(--sage)}
+    .type-btn.active{border-color:var(--sage);background:var(--sage-light);color:var(--sage-dark);font-weight:500}
+    .type-btn .type-icon{font-size:1.4rem;display:block;margin-bottom:4px}
+
+    .gen-btn{width:100%;padding:13px;border-radius:12px;background:var(--sage);color:#fff;border:none;font-size:15px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;margin-top:18px;transition:opacity 0.2s}
+    .gen-btn:hover{opacity:0.88}
+    .gen-btn:disabled{opacity:0.4;cursor:not-allowed}
+
+    .result{background:var(--sage-light);border:1px solid rgba(29,158,117,0.25);border-radius:12px;padding:18px;margin-top:16px;display:none}
+    .result.visible{display:block}
+    .result-label{font-size:11px;font-weight:500;color:var(--sage-dark);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+    .result-name{font-size:13px;color:var(--sage-dark);margin-bottom:10px;font-weight:500}
+    .link-box{background:#fff;border:1px solid rgba(29,158,117,0.2);border-radius:8px;padding:10px 12px;font-size:12px;color:#1a1a1a;word-break:break-all;line-height:1.6;margin-bottom:10px;font-family:monospace}
+    .copy-btn{width:100%;padding:10px;border-radius:8px;background:var(--sage-dark);color:#fff;border:none;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;transition:background 0.2s}
+    .copy-btn.copied{background:#22c55e}
+    .expire-note{font-size:11px;color:var(--sage-dark);text-align:center;margin-top:8px}
+    .action-links{display:flex;gap:8px;margin-top:10px}
+    .action-link{flex:1;padding:8px;border-radius:8px;border:1px solid rgba(29,158,117,0.3);background:#fff;color:var(--sage-dark);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;text-align:center;text-decoration:none;font-weight:500}
+    .action-link:hover{background:var(--sage-light)}
+
+    .history{margin-top:8px}
+    .history-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+    .history-item:last-child{border-bottom:none}
+    .hist-name{font-weight:500;color:#1a1a1a}
+    .hist-meta{font-size:11px;color:#9ca3af;margin-top:2px}
+    .hist-badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500}
+    .hist-badge.active{background:#dcfce7;color:#166534}
+    .hist-badge.expired{background:#fee2e2;color:#991b1b}
+    .hist-copy{padding:5px 10px;border-radius:6px;background:var(--sage-light);color:var(--sage-dark);border:none;font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;font-weight:500}
+
+    .email-template{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:12px}
+    .email-template h3{font-size:12px;font-weight:500;color:#555;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
+    .email-body{font-size:13px;color:#374151;line-height:1.75;white-space:pre-wrap}
+    .copy-email-btn{width:100%;padding:9px;border-radius:8px;background:var(--sage-light);color:var(--sage-dark);border:none;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:10px;font-weight:500}
+
+    .disclaimer{font-size:11px;color:#9ca3af;text-align:center;margin-top:24px;line-height:1.6}
+    .disclaimer a{color:var(--sage)}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">Safe<span>Ear</span></div>
+  <div class="admin-badge">🔐 Operator Panel — Private</div>
+
+  <h1>Session Manager</h1>
+  <p class="sub">Generate a private session link for your client. The link expires automatically after the session duration.</p>
+
+  <!-- GENERATOR -->
+  <div class="card">
+    <h2>🔗 Generate Session Link</h2>
+
+    <label>Client Name</label>
+    <input type="text" id="clientName" placeholder="e.g. Sarah" oninput="updateEmailPreview()"/>
+
+    <label>Session Type</label>
+    <div class="type-grid">
+      <button class="type-btn active" onclick="setType('chat')" id="type-chat">
+        <span class="type-icon">💬</span>Chat
+      </button>
+      <button class="type-btn" onclick="setType('voice')" id="type-voice">
+        <span class="type-icon">🎙️</span>Voice
+      </button>
+      <button class="type-btn" onclick="setType('video')" id="type-video">
+        <span class="type-icon">📹</span>Video
+      </button>
+    </div>
+
+    <label>Session Duration</label>
+    <select id="duration" onchange="updateEmailPreview()">
+      <option value="25">25 minutes — Quick Vent ($45)</option>
+      <option value="55" selected>55 minutes — Deep Conversation ($80)</option>
+      <option value="30">30 minutes</option>
+      <option value="60">60 minutes</option>
+      <option value="90">90 minutes</option>
+    </select>
+
+    <label>Scheduled Date &amp; Time (for email)</label>
+    <input type="datetime-local" id="scheduleTime" onchange="updateEmailPreview()"/>
+
+    <button class="gen-btn" onclick="generateLink()">Generate Session Link</button>
+
+    <!-- RESULT -->
+    <div class="result" id="result">
+      <div class="result-label">Session link for</div>
+      <div class="result-name" id="result-name">—</div>
+      <div class="link-box" id="result-link">—</div>
+      <button class="copy-btn" id="copyBtn" onclick="copyLink()">Copy Link</button>
+      <div class="expire-note" id="result-expire">⏱ Expires after session duration</div>
+      <div class="action-links">
+        <a class="action-link" id="open-link" href="#" target="_blank">Open Link ↗</a>
+        <button class="action-link" onclick="copyEmailTemplate()">Copy Email 📧</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMAIL TEMPLATE -->
+  <div class="card" id="email-card" style="display:none">
+    <h2>📧 Email Template</h2>
+    <div class="email-template">
+      <h3>Copy this email to send to your client</h3>
+      <div class="email-body" id="emailBody">—</div>
+    </div>
+    <button class="copy-email-btn" onclick="copyEmailTemplate()">Copy Email Text</button>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="card">
+    <h2>📋 Recent Sessions</h2>
+    <div class="history" id="historyList">
+      <p style="font-size:13px;color:#9ca3af;font-weight:300">No sessions generated yet.</p>
+    </div>
+  </div>
+
+  <p class="disclaimer">This page is private — only share session links with clients, never this admin URL.<br>
+  <a href="/">← Back to SafeEar</a></p>
+</div>
+
+<script>
+const BASE = window.location.origin;
+let selectedType = 'chat';
+let history_sessions = JSON.parse(localStorage.getItem('se_sessions') || '[]');
+
+function setType(t) {
+  selectedType = t;
+  ['chat','voice','video'].forEach(x => {
+    document.getElementById(`type-${x}`).className = `type-btn${x===t?' active':''}`;
+  });
+  updateEmailPreview();
+}
+
+function generateToken(type, clientName, durationMins) {
+  const id      = Math.random().toString(36).slice(2,10).toUpperCase();
+  const expiry  = Date.now() + durationMins * 60 * 1000;
+  return btoa(`${id}:${type}:${expiry}:${encodeURIComponent(clientName)}`);
+}
+
+function getSessionUrl(type, token) {
+  return `${BASE}/session-${type}.html?t=${token}`;
+}
+
+function generateLink() {
+  const name     = document.getElementById('clientName').value.trim();
+  const duration = parseInt(document.getElementById('duration').value);
+  if (!name) { document.getElementById('clientName').focus(); return; }
+
+  const token = generateToken(selectedType, name, duration);
+  const link  = getSessionUrl(selectedType, token);
+  const expiry = Date.now() + duration * 60 * 1000;
+
+  document.getElementById('result').className = 'result visible';
+  document.getElementById('result-name').textContent = name;
+  document.getElementById('result-link').textContent = link;
+  document.getElementById('open-link').href = link;
+  document.getElementById('result-expire').textContent = `⏱ Link expires in ${duration} minutes from now`;
+  document.getElementById('email-card').style.display = 'block';
+
+  // Save to history
+  history_sessions.unshift({ name, type:selectedType, duration, link, expiry, created: Date.now() });
+  if (history_sessions.length > 20) history_sessions = history_sessions.slice(0, 20);
+  localStorage.setItem('se_sessions', JSON.stringify(history_sessions));
+  renderHistory();
+  updateEmailPreview();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function copyLink() {
+  const link = document.getElementById('result-link').textContent;
+  navigator.clipboard.writeText(link);
+  const btn = document.getElementById('copyBtn');
+  btn.textContent = '✓ Copied!'; btn.className = 'copy-btn copied';
+  setTimeout(() => { btn.textContent='Copy Link'; btn.className='copy-btn'; }, 2500);
+}
+
+function copyEmailTemplate() {
+  const text = document.getElementById('emailBody').textContent;
+  navigator.clipboard.writeText(text);
+  alert('Email template copied to clipboard!');
+}
+
+function updateEmailPreview() {
+  const name     = document.getElementById('clientName').value.trim() || '[Client Name]';
+  const dur      = document.getElementById('duration').value;
+  const typeMap  = {chat:'chat session',voice:'voice call',video:'video call'};
+  const schedule = document.getElementById('scheduleTime').value;
+  const link     = document.getElementById('result-link')?.textContent || '[Link will appear after generating]';
+  const durLabel = dur === '25' ? '25 minutes' : dur === '55' ? '55 minutes' : `${dur} minutes`;
+  const scheduleText = schedule ? new Date(schedule).toLocaleString([],{weekday:'long',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '[Your scheduled time]';
+
+  const email = `Subject: Your SafeEar Session Link — ${scheduleText}
+
+Hi ${name},
+
+Your private SafeEar ${typeMap[selectedType]} is confirmed for ${scheduleText}.
+
+Here is your private session link:
+${link}
+
+Important:
+• This link is private — please do not share it with anyone
+• The link will be active for ${durLabel} starting from our session time
+• Click the link a few minutes before our session starts
+• You will need to allow microphone${selectedType !== 'chat' ? ' (and camera for video)' : ''} access
+
+Payment reminder:
+Please complete payment before our session via Payoneer, WorldRemit, Remitly, or NALA. I will send payment details separately.
+
+Looking forward to our session.
+
+Warm regards,
+SafeEar
+safe-ear.com`;
+
+  document.getElementById('emailBody').textContent = email;
+}
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  if (!history_sessions.length) {
+    list.innerHTML = '<p style="font-size:13px;color:#9ca3af;font-weight:300">No sessions generated yet.</p>';
+    return;
+  }
+  list.innerHTML = history_sessions.slice(0,8).map(s => {
+    const expired = Date.now() > s.expiry;
+    const created = new Date(s.created).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    const icon    = s.type==='chat'?'💬':s.type==='voice'?'🎙️':'📹';
+    return `
+      <div class="history-item">
+        <div>
+          <div class="hist-name">${icon} ${s.name}</div>
+          <div class="hist-meta">${s.duration} min · ${created}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="hist-badge ${expired?'expired':'active'}">${expired?'Expired':'Active'}</span>
+          ${!expired?`<button class="hist-copy" onclick="navigator.clipboard.writeText('${s.link}');this.textContent='✓';setTimeout(()=>this.textContent='Copy',1500)">Copy</button>`:''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+renderHistory();
+document.getElementById('scheduleTime').value = new Date(Date.now() + 3600000).toISOString().slice(0,16);
+updateEmailPreview();
+</script>
+</body>
+</html>

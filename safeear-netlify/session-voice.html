@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SafeEar — Voice Session</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{--sage:#1D9E75;--sage-dark:#0F6E56;--sage-light:#E1F5EE}
+    body{font-family:'DM Sans',sans-serif;background:#f7f4ef;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+    .logo{font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--sage);margin-bottom:48px}
+    .logo span{color:var(--sage-dark)}
+    .avatar-ring{width:120px;height:120px;border-radius:50%;background:var(--sage-light);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:3rem;box-shadow:0 0 0 20px rgba(29,158,117,0.1),0 0 0 40px rgba(29,158,117,0.05);animation:ripple 2s ease-in-out infinite}
+    @keyframes ripple{0%,100%{box-shadow:0 0 0 20px rgba(29,158,117,0.12),0 0 0 40px rgba(29,158,117,0.06)}50%{box-shadow:0 0 0 28px rgba(29,158,117,0.08),0 0 0 52px rgba(29,158,117,0.04)}}
+    h1{font-family:'DM Serif Display',serif;font-size:1.7rem;letter-spacing:-0.5px;margin-bottom:6px;text-align:center}
+    .sub{color:#6b7280;font-size:14px;margin-bottom:8px;text-align:center}
+    .duration{font-family:'DM Serif Display',serif;font-size:2.2rem;color:var(--sage);font-weight:600;margin-bottom:4px;text-align:center}
+    .expires{color:#9ca3af;font-size:12px;text-align:center;margin-bottom:48px}
+    .controls{display:flex;align-items:center;gap:20px;justify-content:center}
+    .ctrl{width:58px;height:58px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+    .ctrl:hover{transform:scale(1.06)}
+    .ctrl.normal{background:#e5e7eb}
+    .ctrl.off{background:#ef4444}
+    .ctrl svg{stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .end-ctrl{width:68px;height:68px;border-radius:50%;background:#ef4444;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .end-ctrl:hover{background:#dc2626}
+    .badge{margin-top:32px;font-size:12px;color:#9ca3af;display:flex;align-items:center;justify-content:center;gap:4px}
+    .pulse{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--sage);animation:p 1.5s infinite}
+    @keyframes p{0%,100%{opacity:1}50%{opacity:0.3}}
+  </style>
+</head>
+<body>
+  <div class="logo">Safe<span>Ear</span></div>
+  <div class="avatar-ring">🌿</div>
+  <h1 id="client-name">Voice Session</h1>
+  <p class="sub" id="call-status">Connecting…</p>
+  <div class="duration" id="duration">00:00</div>
+  <div class="expires" id="expires-text">Expires in --:--</div>
+
+  <div class="controls">
+    <button class="ctrl normal" id="muteBtn" onclick="toggleMute()" title="Mute mic">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#374151"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </button>
+    <button class="end-ctrl" onclick="endCall()" title="End call">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(135deg)"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9A16 16 0 0 0 15 16.09l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    </button>
+  </div>
+
+  <div class="badge"><span class="pulse"></span> Private &amp; confidential</div>
+
+<script>
+const params  = new URLSearchParams(window.location.search);
+const token   = params.get('t');
+function parseToken(t) {
+  try { const d=atob(t),p=d.split(':'); return {clientName:decodeURIComponent(p[3]||'Guest'),expiry:parseInt(p[2]),expired:Date.now()>parseInt(p[2])}; }
+  catch{ return null; }
+}
+const session = token ? parseToken(token) : null;
+if (!session||session.expired) window.location.href='session-expired.html';
+
+document.getElementById('client-name').textContent = session.clientName;
+
+let muted=false, durationSecs=0, stream=null;
+
+navigator.mediaDevices.getUserMedia({audio:true}).then(s=>{
+  stream=s;
+  document.getElementById('call-status').textContent='Connected — SafeEar is listening';
+}).catch(()=>{
+  document.getElementById('call-status').textContent='Mic access denied — audio may not work';
+});
+
+function fmtDur(s){return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;}
+
+setInterval(()=>{
+  durationSecs++;
+  document.getElementById('duration').textContent=fmtDur(durationSecs);
+  const r=session.expiry-Date.now();
+  if(r<=0){window.location.href='session-expired.html';return;}
+  const m=Math.floor(r/60000),sec=Math.floor((r%60000)/1000);
+  document.getElementById('expires-text').textContent=`Expires in ${m}:${String(sec).padStart(2,'0')}`;
+},1000);
+
+function toggleMute(){
+  muted=!muted;
+  stream?.getAudioTracks().forEach(t=>t.enabled=!muted);
+  const b=document.getElementById('muteBtn');
+  b.className=`ctrl ${muted?'off':'normal'}`;
+  b.querySelector('svg').style.stroke=muted?'#fff':'#374151';
+}
+function endCall(){
+  stream?.getTracks().forEach(t=>t.stop());
+  window.location.href='session-expired.html';
+}
+</script>
+</body>
+</html>

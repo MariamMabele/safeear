@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SafeEar — Video Session</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{--sage:#1D9E75;--sage-dark:#0F6E56;--sage-light:#E1F5EE}
+    body{font-family:'DM Sans',sans-serif;background:#0d0d0d;min-height:100vh;display:flex;flex-direction:column;color:#fff}
+
+    /* WAITING */
+    #waiting{flex:1;display:flex;align-items:center;justify-content:center;padding:24px}
+    .wait-card{text-align:center;max-width:400px}
+    .wait-logo{font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--sage);margin-bottom:36px}
+    .wait-logo span{color:#c2ddd2}
+    .wait-icon{width:88px;height:88px;border-radius:50%;background:var(--sage-light);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:2.5rem;box-shadow:0 0 0 16px rgba(29,158,117,0.12),0 0 0 32px rgba(29,158,117,0.06)}
+    h1{font-family:'DM Serif Display',serif;font-size:1.8rem;letter-spacing:-0.5px;margin-bottom:10px;color:#fff}
+    .wait-sub{color:rgba(255,255,255,0.5);font-size:14px;line-height:1.7;font-weight:300;margin-bottom:4px}
+    .timer-box{background:rgba(29,158,117,0.15);border:1px solid rgba(29,158,117,0.3);border-radius:12px;padding:14px 20px;margin:20px 0;display:inline-block}
+    .timer-label{font-size:11px;color:var(--sage);font-weight:500;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+    .timer-val{font-family:'DM Serif Display',serif;font-size:2rem;color:var(--sage)}
+    .wait-status{font-size:13px;color:rgba(255,255,255,0.4);margin-top:16px;display:flex;align-items:center;justify-content:center;gap:8px}
+    .pulse{width:8px;height:8px;border-radius:50%;background:var(--sage);animation:pulse 1.5s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+    .badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:rgba(255,255,255,0.3);margin-top:14px}
+
+    /* VIDEO */
+    #video-area{flex:1;display:none;flex-direction:column;height:100vh}
+    .vid-topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:rgba(0,0,0,0.5);flex-shrink:0}
+    .vid-logo{font-family:'DM Serif Display',serif;font-size:1.1rem}
+    .vid-logo span{color:var(--sage)}
+    .vid-status{display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.6)}
+    .vid-encrypted{display:flex;align-items:center;gap:5px;font-size:11px;color:rgba(255,255,255,0.35);background:rgba(255,255,255,0.08);padding:4px 10px;border-radius:20px}
+
+    .vid-main{flex:1;display:flex;align-items:center;justify-content:center;position:relative;padding:20px}
+    .remote-video{width:100%;max-width:780px;aspect-ratio:16/9;border-radius:16px;background:#1a1a2e;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .remote-placeholder{text-align:center}
+    .remote-avatar{width:88px;height:88px;border-radius:50%;background:var(--sage-light);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:2.5rem}
+    .remote-placeholder p{color:rgba(255,255,255,0.5);font-size:14px;margin-bottom:4px}
+    .remote-placeholder small{color:rgba(255,255,255,0.25);font-size:12px}
+
+    .local-video-wrap{position:absolute;bottom:24px;right:24px;width:140px;aspect-ratio:4/3;border-radius:12px;overflow:hidden;border:2px solid rgba(255,255,255,0.2);background:#111}
+    video.local{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+    .local-off{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3)}
+
+    .vid-controls{display:flex;align-items:center;justify-content:center;gap:16px;padding:20px;background:rgba(0,0,0,0.4);flex-shrink:0}
+    .ctrl-btn{width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+    .ctrl-btn:hover{transform:scale(1.08)}
+    .ctrl-btn.normal{background:rgba(255,255,255,0.15)}
+    .ctrl-btn.danger{background:#ef4444}
+    .ctrl-btn.off{background:#ef4444}
+    .ctrl-btn svg{stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .end-btn{width:60px;height:60px;border-radius:50%;background:#ef4444;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+    .end-btn:hover{transform:scale(1.05);background:#dc2626}
+    .timer-badge{font-size:12px;color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.1);padding:6px 14px;border-radius:20px}
+  </style>
+</head>
+<body>
+
+<!-- WAITING -->
+<div id="waiting">
+  <div class="wait-card">
+    <div class="wait-logo">Safe<span>Ear</span></div>
+    <div class="wait-icon">📹</div>
+    <h1 id="wait-name">Welcome</h1>
+    <p class="wait-sub">Your private video session room is ready.</p>
+    <p class="wait-sub">Please allow camera &amp; microphone access when prompted.</p>
+    <div class="timer-box">
+      <div class="timer-label">Session expires in</div>
+      <div class="timer-val" id="wait-timer">--:--</div>
+    </div>
+    <div class="wait-status"><div class="pulse"></div>Waiting for SafeEar to join…</div>
+    <div class="badge">🔒 Private &amp; encrypted session</div>
+  </div>
+</div>
+
+<!-- VIDEO ROOM -->
+<div id="video-area">
+  <div class="vid-topbar">
+    <div class="vid-logo">Safe<span>Ear</span></div>
+    <div class="vid-status">
+      <div class="pulse"></div>
+      Session active · <span id="header-timer">--:--</span>
+    </div>
+    <div class="vid-encrypted">🔒 Private session</div>
+  </div>
+
+  <div class="vid-main">
+    <div class="remote-video">
+      <div class="remote-placeholder">
+        <div class="remote-avatar">🌿</div>
+        <p id="remote-status">Waiting for SafeEar…</p>
+        <small id="session-name"></small>
+      </div>
+    </div>
+    <div class="local-video-wrap" id="localWrap">
+      <video class="local" id="localVideo" autoplay muted playsinline></video>
+    </div>
+  </div>
+
+  <div class="vid-controls">
+    <button class="ctrl-btn normal" id="muteBtn" onclick="toggleMute()" title="Mute">
+      <svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </button>
+    <button class="ctrl-btn normal" id="videoBtn" onclick="toggleVideo()" title="Camera">
+      <svg width="22" height="22" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+    </button>
+    <div class="timer-badge" id="ctrl-timer">--:--</div>
+    <button class="end-btn" onclick="endCall()" title="End call">
+      <svg width="24" height="24" viewBox="0 0 24 24" style="stroke:#fff;fill:none;stroke-width:2;transform:rotate(135deg)"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9A16 16 0 0 0 15 16.09l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+const params  = new URLSearchParams(window.location.search);
+const token   = params.get('t');
+
+function parseToken(t) {
+  try {
+    const d = atob(t), parts = d.split(':');
+    return { sessionId:parts[0], type:parts[1], expiry:parseInt(parts[2]), clientName:decodeURIComponent(parts[3]||'Guest'), expired: Date.now()>parseInt(parts[2]) };
+  } catch { return null; }
+}
+
+const session = token ? parseToken(token) : null;
+if (!session || session.expired) window.location.href = 'session-expired.html';
+
+let localStream = null, muted = false, videoOff = false;
+
+document.getElementById('wait-name').textContent = `Welcome, ${session.clientName}`;
+document.getElementById('session-name').textContent = session.clientName;
+
+function updateTimers() {
+  const r = session.expiry - Date.now();
+  if (r <= 0) { window.location.href = 'session-expired.html'; return; }
+  const m = Math.floor(r/60000), s = Math.floor((r%60000)/1000);
+  const ts = `${m}:${String(s).padStart(2,'0')}`;
+  document.getElementById('wait-timer').textContent = ts;
+  document.getElementById('header-timer').textContent = ts;
+  document.getElementById('ctrl-timer').textContent  = ts;
+}
+updateTimers(); setInterval(updateTimers, 1000);
+
+function startVideo() {
+  navigator.mediaDevices.getUserMedia({video:true,audio:true}).then(stream => {
+    localStream = stream;
+    document.getElementById('localVideo').srcObject = stream;
+    document.getElementById('waiting').style.display   = 'none';
+    document.getElementById('video-area').style.display = 'flex';
+    document.getElementById('remote-status').textContent = 'Waiting for SafeEar to join…';
+  }).catch(() => {
+    document.getElementById('waiting').style.display   = 'none';
+    document.getElementById('video-area').style.display = 'flex';
+  });
+}
+setTimeout(startVideo, 1500);
+
+function toggleMute() {
+  muted = !muted;
+  localStream?.getAudioTracks().forEach(t => t.enabled = !muted);
+  const btn = document.getElementById('muteBtn');
+  btn.className = `ctrl-btn ${muted?'off':'normal'}`;
+}
+function toggleVideo() {
+  videoOff = !videoOff;
+  localStream?.getVideoTracks().forEach(t => t.enabled = !videoOff);
+  const btn = document.getElementById('videoBtn');
+  btn.className = `ctrl-btn ${videoOff?'off':'normal'}`;
+  document.getElementById('localWrap').style.opacity = videoOff ? '0.4' : '1';
+}
+function endCall() {
+  localStream?.getTracks().forEach(t => t.stop());
+  window.location.href = 'session-expired.html';
+}
+</script>
+</body>
+</html>

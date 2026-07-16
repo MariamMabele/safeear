@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SafeEar — Private Chat Session</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{--sage:#1D9E75;--sage-dark:#0F6E56;--sage-x:#085041;--sage-light:#E1F5EE}
+    body{font-family:'DM Sans',sans-serif;background:#f7f4ef;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+    /* WAITING */
+    #waiting{flex:1;display:flex;align-items:center;justify-content:center;padding:24px}
+    .wait-card{text-align:center;max-width:400px;width:100%}
+    .wait-logo{font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--sage);margin-bottom:36px}
+    .wait-logo span{color:var(--sage-dark)}
+    .wait-icon{width:80px;height:80px;border-radius:50%;background:var(--sage-light);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:2.2rem}
+    .wait-card h1{font-family:'DM Serif Display',serif;font-size:1.7rem;letter-spacing:-0.5px;margin-bottom:10px}
+    .wait-card p{color:#6b7280;font-size:14px;line-height:1.7;margin-bottom:6px;font-weight:300}
+    .timer-box{background:var(--sage-light);border-radius:12px;padding:14px 20px;margin:20px 0}
+    .timer-label{font-size:11px;color:var(--sage-dark);font-weight:500;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+    .timer-val{font-family:'DM Serif Display',serif;font-size:2.2rem;color:var(--sage-dark)}
+    .pulse-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--sage);animation:pulse 1.5s infinite;margin-right:6px}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+    .wait-status{font-size:13px;color:#9ca3af;margin-top:14px;display:flex;align-items:center;justify-content:center}
+    .private-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#9ca3af;margin-top:16px}
+
+    /* CHAT */
+    #chat-area{flex:1;display:none;flex-direction:column;height:100vh}
+    .chat-header{background:var(--sage);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+    .chat-header-left{display:flex;align-items:center;gap:10px}
+    .avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:13px}
+    .chat-header h2{color:#fff;font-size:13px;font-weight:500;margin-bottom:2px}
+    .online-indicator{display:flex;align-items:center;gap:4px}
+    .green-dot{width:6px;height:6px;border-radius:50%;background:#86efac;animation:pulse 1.5s infinite}
+    .online-text{font-size:11px;color:rgba(255,255,255,0.7)}
+    .session-timer{font-size:11px;color:rgba(255,255,255,0.7);background:rgba(255,255,255,0.15);padding:4px 10px;border-radius:20px}
+
+    /* LANG PICKER */
+    .lang-btn{display:flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(255,255,255,0.15);border:none;border-radius:8px;color:#fff;font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer}
+    .lang-btn:hover{background:rgba(255,255,255,0.25)}
+    .lang-dropdown{position:absolute;top:100%;right:0;margin-top:4px;background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.15);overflow:hidden;z-index:50;width:170px;display:none}
+    .lang-dropdown.open{display:block}
+    .lang-dropdown-header{padding:8px 12px;font-size:10px;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:1.5px;border-bottom:1px solid #f3f4f6}
+    .lang-list{max-height:200px;overflow-y:auto}
+    .lang-item{width:100%;display:flex;align-items:center;gap:8px;padding:9px 12px;border:none;background:none;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;text-align:left}
+    .lang-item:hover{background:#f9fafb}
+    .lang-item.active{color:var(--sage);font-weight:500}
+    .lang-header-right{display:flex;align-items:center;gap:6px;position:relative}
+
+    /* TRANSLATOR NOTICE */
+    .trans-notice{background:#fffbf0;border-bottom:1px solid #fde68a;padding:7px 16px;display:none;align-items:center;gap:6px;font-size:11px;color:#92400e;flex-shrink:0}
+    .trans-notice.visible{display:flex}
+
+    /* MESSAGES */
+    .messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;background:#f7f4ef}
+    .messages::-webkit-scrollbar{width:3px}
+    .messages::-webkit-scrollbar-thumb{background:#e4e0d8;border-radius:2px}
+    .msg-row{display:flex;flex-direction:column;gap:4px}
+    .msg-row.from-me{align-items:flex-end}
+    .msg-row.from-them{align-items:flex-start}
+    .msg-row.system{align-items:center}
+    .msg-name{font-size:10px;color:#9ca3af;padding:0 4px}
+    .bubble{padding:10px 14px;border-radius:18px;font-size:14px;line-height:1.6;max-width:82%}
+    .bubble.mine{background:var(--sage);color:#fff;border-bottom-right-radius:4px}
+    .bubble.theirs{background:#fff;color:#1a1a1a;border:1px solid #e8e4dc;border-bottom-left-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,0.05)}
+    .bubble.sys{background:#f3f4f6;color:#6b7280;font-size:11px;border-radius:20px;padding:5px 14px}
+    .trans-bubble{padding:7px 12px;border-radius:10px;font-size:11px;background:#f0fdf4;color:var(--sage-dark);border:1px solid rgba(29,158,117,0.2);max-width:82%}
+    .translating-dots{display:flex;gap:3px;align-items:center;padding:8px 12px;background:#f0fdf4;border-radius:10px;border:1px solid rgba(29,158,117,0.2)}
+    .translating-dots span{width:5px;height:5px;border-radius:50%;background:var(--sage);display:inline-block;animation:bounce 1.2s infinite}
+    .translating-dots span:nth-child(2){animation-delay:0.15s}
+    .translating-dots span:nth-child(3){animation-delay:0.3s}
+    @keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
+    .msg-time{font-size:10px;color:#d1d5db;padding:0 4px}
+    .typing{display:none;align-items:flex-start;gap:0}
+    .typing.visible{display:flex}
+    .typing-bubble{background:#fff;border:1px solid #e8e4dc;border-radius:18px;border-bottom-left-radius:4px;padding:12px 16px;display:flex;gap:4px;align-items:center;box-shadow:0 1px 4px rgba(0,0,0,0.05)}
+    .typing-bubble span{width:6px;height:6px;border-radius:50%;background:#ccc;animation:bounce 1.2s infinite}
+    .typing-bubble span:nth-child(2){animation-delay:0.15s}
+    .typing-bubble span:nth-child(3){animation-delay:0.3s}
+
+    /* INPUT */
+    .input-area{background:#fff;border-top:1px solid #e8e4dc;padding:12px 14px;flex-shrink:0}
+    .input-row{display:flex;gap:8px;align-items:flex-end;max-width:700px;margin:0 auto}
+    textarea{flex:1;border:1.5px solid rgba(29,158,117,0.3);border-radius:12px;padding:10px 14px;font-size:14px;font-family:'DM Sans',sans-serif;resize:none;outline:none;line-height:1.5;min-height:44px;max-height:100px;transition:border-color 0.2s;background:#f9f9f7}
+    textarea:focus{border-color:var(--sage);background:#fff}
+    .send-btn{width:44px;height:44px;border-radius:12px;background:var(--sage);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity 0.2s}
+    .send-btn:hover{opacity:0.88}
+    .send-btn:disabled{opacity:0.35;cursor:not-allowed}
+    .send-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .input-hint{font-size:10px;color:#d1d5db;text-align:center;margin-top:6px}
+  </style>
+</head>
+<body>
+
+<!-- WAITING SCREEN -->
+<div id="waiting">
+  <div class="wait-card">
+    <div class="wait-logo">Safe<span>Ear</span></div>
+    <div class="wait-icon">🌿</div>
+    <h1 id="wait-name">Welcome</h1>
+    <p>Your private chat session room is ready.</p>
+    <p>Your listener will join shortly.</p>
+    <div class="timer-box">
+      <div class="timer-label">Session expires in</div>
+      <div class="timer-val" id="wait-timer">--:--</div>
+    </div>
+    <div class="wait-status">
+      <span class="pulse-dot"></span>
+      Waiting for SafeEar to join…
+    </div>
+    <div class="private-badge">🔒 Private &amp; confidential session</div>
+  </div>
+</div>
+
+<!-- CHAT AREA -->
+<div id="chat-area">
+  <div class="chat-header">
+    <div class="chat-header-left">
+      <div class="avatar">SE</div>
+      <div>
+        <h2>SafeEar — Private Session</h2>
+        <div class="online-indicator">
+          <div class="green-dot"></div>
+          <span class="online-text">Session active · <span id="header-timer">--:--</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="lang-header-right">
+      <div class="session-timer" id="session-timer-badge">--:--</div>
+      <button class="lang-btn" id="langBtn" onclick="toggleLangPicker()">
+        <span id="currentFlag">🇬🇧</span>
+        <span id="currentLang">English</span>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="lang-dropdown" id="langDropdown">
+        <div class="lang-dropdown-header">Your language</div>
+        <div class="lang-list" id="langList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="trans-notice" id="transNotice">
+    🌐 AI Translator active — <span id="transLangLabel">French</span> ↔ 🇬🇧 English
+  </div>
+
+  <div class="messages" id="messages">
+    <div class="typing" id="typingIndicator">
+      <div class="typing-bubble"><span></span><span></span><span></span></div>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <div class="input-row">
+      <textarea id="msgInput" placeholder="Type your message…" rows="1"
+        oninput="autoResize(this)"
+        onkeydown="handleKey(event)"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+    <div class="input-hint" id="inputHint">Press Enter to send · Shift+Enter for new line</div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────
+const LANGUAGES = [
+  {code:"en",label:"English",flag:"🇬🇧"},
+  {code:"fr",label:"French",flag:"🇫🇷"},
+  {code:"de",label:"German",flag:"🇩🇪"},
+  {code:"es",label:"Spanish",flag:"🇪🇸"},
+  {code:"it",label:"Italian",flag:"🇮🇹"},
+  {code:"pt",label:"Portuguese",flag:"🇵🇹"},
+  {code:"nl",label:"Dutch",flag:"🇳🇱"},
+  {code:"ar",label:"Arabic",flag:"🇸🇦"},
+  {code:"zh",label:"Chinese",flag:"🇨🇳"},
+  {code:"ja",label:"Japanese",flag:"🇯🇵"},
+  {code:"ru",label:"Russian",flag:"🇷🇺"},
+  {code:"pl",label:"Polish",flag:"🇵🇱"},
+  {code:"sw",label:"Swahili",flag:"🇰🇪"},
+];
+
+// ── SESSION PARSE ───────────────────────────────────────
+function parseToken(token) {
+  try {
+    const decoded = atob(token);
+    const parts   = decoded.split(':');
+    const expiry  = parseInt(parts[2]);
+    const name    = decodeURIComponent(parts[3] || 'Guest');
+    return { sessionId:parts[0], type:parts[1], expiry, clientName:name,
+             expired: Date.now() > expiry };
+  } catch(e) { return null; }
+}
+
+const params  = new URLSearchParams(window.location.search);
+const token   = params.get('t');
+const session = token ? parseToken(token) : null;
+
+if (!session) { window.location.href = 'session-expired.html'; }
+else if (session.expired) { window.location.href = 'session-expired.html'; }
+
+// ── STATE ───────────────────────────────────────────────
+let clientLang    = 'en';
+let clientName    = session ? session.clientName : 'Guest';
+let sessionActive = false;
+let sending       = false;
+
+// ── INIT ────────────────────────────────────────────────
+document.getElementById('wait-name').textContent = `Welcome, ${clientName}`;
+
+// Build language list
+const langList = document.getElementById('langList');
+LANGUAGES.forEach(l => {
+  const btn = document.createElement('button');
+  btn.className = 'lang-item' + (l.code === 'en' ? ' active' : '');
+  btn.innerHTML = `${l.flag} ${l.label}`;
+  btn.onclick = () => setLang(l.code);
+  langList.appendChild(btn);
+});
+
+// ── TIMER ───────────────────────────────────────────────
+function updateTimers() {
+  if (!session) return;
+  const remaining = session.expiry - Date.now();
+  if (remaining <= 0) {
+    window.location.href = 'session-expired.html'; return;
+  }
+  const m  = Math.floor(remaining / 60000);
+  const s  = Math.floor((remaining % 60000) / 1000);
+  const ts = `${m}:${String(s).padStart(2,'0')}`;
+  document.getElementById('wait-timer').textContent        = ts;
+  document.getElementById('header-timer').textContent      = `expires in ${ts}`;
+  document.getElementById('session-timer-badge').textContent = ts;
+}
+updateTimers();
+setInterval(updateTimers, 1000);
+
+// ── SHOW CHAT ────────────────────────────────────────────
+function startChat() {
+  document.getElementById('waiting').style.display   = 'none';
+  document.getElementById('chat-area').style.display = 'flex';
+  sessionActive = true;
+  document.getElementById('sendBtn').disabled = false;
+  addMessage({ text: `Hi ${clientName} 🌿 I'm here and I'm listening. Take your time — there's no rush.`, sender: 'operator' });
+  document.getElementById('msgInput').focus();
+}
+
+// Auto-start chat after 2s for demo (in production, operator joins via their admin panel)
+setTimeout(startChat, 2000);
+
+// ── LANGUAGE ─────────────────────────────────────────────
+function setLang(code) {
+  clientLang = code;
+  const lang = LANGUAGES.find(l => l.code === code);
+  document.getElementById('currentFlag').textContent = lang.flag;
+  document.getElementById('currentLang').textContent = lang.label;
+  document.getElementById('transLangLabel').textContent = lang.label;
+  document.getElementById('transNotice').className = 'trans-notice' + (code !== 'en' ? ' visible' : '');
+  document.getElementById('inputHint').textContent = code !== 'en'
+    ? `AI translating ${lang.flag} ↔ 🇬🇧 — type in ${lang.label}`
+    : 'Press Enter to send · Shift+Enter for new line';
+  langList.querySelectorAll('.lang-item').forEach((btn,i) => {
+    btn.classList.toggle('active', LANGUAGES[i].code === code);
+  });
+  document.getElementById('langDropdown').classList.remove('open');
+}
+
+function toggleLangPicker() {
+  document.getElementById('langDropdown').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.lang-header-right'))
+    document.getElementById('langDropdown').classList.remove('open');
+});
+
+// ── MESSAGES ──────────────────────────────────────────────
+function getTime() {
+  return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+}
+
+function addMessage({ text, sender, translated }) {
+  const container = document.getElementById('messages');
+  const typing    = document.getElementById('typingIndicator');
+  const row = document.createElement('div');
+  row.className = `msg-row ${sender === 'client' ? 'from-me' : sender === 'system' ? 'system' : 'from-them'}`;
+
+  if (sender === 'system') {
+    row.innerHTML = `<div class="bubble sys">${text}</div>`;
+  } else {
+    const nameEl = sender === 'operator' ? '<span class="msg-name">SafeEar</span>' : `<span class="msg-name">${clientName}</span>`;
+    const bubbleClass = sender === 'client' ? 'mine' : 'theirs';
+    const transEl = translated ? `<div class="trans-bubble">${translated}</div>` : '';
+    row.innerHTML = `${nameEl}<div class="bubble ${bubbleClass}">${escHtml(text)}</div>${transEl}<span class="msg-time">${getTime()}</span>`;
+  }
+  container.insertBefore(row, typing);
+  container.scrollTop = container.scrollHeight;
+  return row;
+}
+
+function addTranslatingBubble() {
+  const container = document.getElementById('messages');
+  const typing    = document.getElementById('typingIndicator');
+  const div = document.createElement('div');
+  div.className = 'msg-row from-me';
+  div.innerHTML = `<div class="translating-dots"><span></span><span></span><span></span><span style="font-size:11px;color:#0F6E56;margin-left:4px">Translating…</span></div>`;
+  container.insertBefore(div, typing);
+  container.scrollTop = container.scrollHeight;
+  return div;
+}
+
+function escHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── TRANSLATE ─────────────────────────────────────────────
+async function translate(text, fromLabel, toLabel) {
+  if (fromLabel === toLabel) return text;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:500,
+        system:`You are an empathetic translator for SafeEar, a mental wellness listening service. Translate from ${fromLabel} to ${toLabel}. Keep the emotional warmth and tone. Return ONLY the translated text — nothing else.`,
+        messages:[{role:'user',content:text}]
+      })
+    });
+    const data = await res.json();
+    return data.content?.[0]?.text?.trim() || text;
+  } catch { return text; }
+}
+
+// ── SEND ──────────────────────────────────────────────────
+async function sendMessage() {
+  const input  = document.getElementById('msgInput');
+  const text   = input.value.trim();
+  if (!text || sending || !sessionActive) return;
+  input.value = '';
+  input.style.height = 'auto';
+  sending = true;
+  document.getElementById('sendBtn').disabled = true;
+
+  const lang = LANGUAGES.find(l => l.code === clientLang);
+
+  if (clientLang !== 'en') {
+    // Show original + translating
+    addMessage({ text, sender: 'client' });
+    const tBubble = addTranslatingBubble();
+    const englishText = await translate(text, lang.label, 'English');
+    tBubble.innerHTML = `<div class="msg-row from-me"><div class="trans-bubble">🇬🇧 ${escHtml(englishText)}</div></div>`;
+    // Show typing then reply
+    showTyping();
+    setTimeout(async () => {
+      hideTyping();
+      const replyEn = `Thank you for sharing that. I hear you. 💚`;
+      const replyTranslated = await translate(replyEn, 'English', lang.label);
+      addMessage({ text: replyTranslated, sender: 'operator', translated: `🇬🇧 ${replyEn}` });
+    }, 1800);
+  } else {
+    addMessage({ text, sender: 'client' });
+    showTyping();
+    setTimeout(() => {
+      hideTyping();
+      addMessage({ text: `Thank you for sharing that with me. I'm here. 💚`, sender: 'operator' });
+    }, 1500);
+  }
+
+  sending = false;
+  document.getElementById('sendBtn').disabled = false;
+  input.focus();
+}
+
+function showTyping() { document.getElementById('typingIndicator').classList.add('visible'); document.getElementById('messages').scrollTop = 99999; }
+function hideTyping() { document.getElementById('typingIndicator').classList.remove('visible'); }
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+</script>
+</body>
+</html>
