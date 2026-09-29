@@ -1,33 +1,249 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="SafeEar — A real human listener. No judgment, no diagnosis. Book a session today." />
-    <title>SafeEar — Someone Who Will Truly Listen</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet" />
-    <script type="module" crossorigin src="/assets/index-CZ2y7kFp.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CGoP6dYB.css">
-  </head>
-  <body>
-    <div id="root"></div>
-    <form name="booking" method="POST" data-netlify="true" hidden>
-      <input type="hidden" name="form-name" value="booking" />
-      <input name="client_name" />
-      <input name="client_email" />
-      <input name="session_name" />
-      <input name="duration" />
-      <input name="price" />
-      <input name="date" />
-      <input name="client_time" />
-      <input name="operator_time" />
-      <input name="call_type" />
-      <input name="method" />
-      <input name="platform" />
-      <textarea name="summary"></textarea>
-    </form>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SafeEar — A real human listener. No judgment, no diagnosis. Book a session and feel lighter." />
+  <meta name="theme-color" content="#f7f4ef" />
+  <title>SafeEar — Someone Who Will Truly Listen</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/booking.css" />
+</head>
+<body>
+  <header class="header" id="header">
+    <div class="wrap header-inner">
+      <button class="logo" aria-label="SafeEar home">Safe<span>Ear</span></button>
+      <nav class="nav" id="nav">
+        <a href="#how">How it works</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#release">Let it out</a>
+        <button class="btn btn-primary btn-sm" data-book>Book a session</button>
+      </nav>
+      <button class="menu-toggle" id="menu-toggle" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-glow" aria-hidden="true"></div>
+      <div class="wrap hero-inner">
+        <p class="pill">Safe, private &amp; non-judgmental</p>
+        <h1>Someone who will truly <em>listen</em> to you</h1>
+        <p class="lead">No diagnoses, no judgment. Just a warm, caring human ready to hear you out, so you can put it down and feel lighter.</p>
+        <div class="hero-actions">
+          <button class="btn btn-primary btn-lg" data-book>Book a session <span aria-hidden="true">→</span></button>
+          <a class="btn btn-ghost btn-lg" href="#release">Just need to vent now?</a>
+        </div>
+        <ul class="trust">
+          <li>100% confidential</li>
+          <li>All time zones welcome</li>
+          <li>Video, voice or chat</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="why">
+      <div class="wrap">
+        <p class="eyebrow">Why SafeEar</p>
+        <h2>You deserve to be heard</h2>
+        <p class="section-lead">Sometimes you don't need a therapist. You just need someone who listens without rushing you or judging you.</p>
+        <div class="grid-4">
+          <article class="card">
+            <div class="card-icon">♡</div>
+            <h3>Judgment-free</h3>
+            <p>Share anything. There's no right or wrong way to feel here.</p>
+          </article>
+          <article class="card">
+            <div class="card-icon">☺</div>
+            <h3>A real human</h3>
+            <p>Not a bot. A warm, caring person who truly listens.</p>
+          </article>
+          <article class="card">
+            <div class="card-icon">◎</div>
+            <h3>Fully private</h3>
+            <p>Your conversations stay between us. Always.</p>
+          </article>
+          <article class="card">
+            <div class="card-icon">◷</div>
+            <h3>Any time zone</h3>
+            <p>Book when it fits your life: mornings, evenings, weekends.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-tint" id="how">
+      <div class="wrap">
+        <p class="eyebrow">How it works</p>
+        <h2>Simple as 1, 2, 3</h2>
+        <ol class="steps">
+          <li>
+            <span class="step-num">1</span>
+            <h3>Pick what you need</h3>
+            <p>A quick 25-minute vent or a deeper 55-minute conversation, by video, voice or chat.</p>
+          </li>
+          <li>
+            <span class="step-num">2</span>
+            <h3>Choose a time</h3>
+            <p>We show times in your own time zone. Payment details arrive by email.</p>
+          </li>
+          <li>
+            <span class="step-num">3</span>
+            <h3>We talk</h3>
+            <p>You talk, I listen, fully present, with no distractions. You leave lighter.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section" id="release">
+      <div class="wrap release">
+        <div>
+          <p class="eyebrow">Let it out</p>
+          <h2>Write it down, then let it go</h2>
+          <p class="section-lead">Type whatever is weighing on you. When you press <strong>Release</strong>, it disappears. It is never saved or sent anywhere.</p>
+        </div>
+        <div class="release-box" id="release-box">
+          <textarea id="release-text" rows="6" placeholder="What's on your mind right now?" aria-label="Write what's on your mind"></textarea>
+          <div class="release-actions">
+            <span class="release-note">Stays on your device only</span>
+            <button class="btn btn-primary" id="release-btn" disabled>Release</button>
+          </div>
+          <div class="release-done" id="release-done" hidden>
+            <p class="release-done-title">It's gone. Take a slow breath.</p>
+            <div class="breath" aria-hidden="true"><span></span></div>
+            <p>If you'd like someone to hear the rest, I'm here.</p>
+            <div class="release-done-actions">
+              <button class="btn btn-primary" data-book>Talk to someone</button>
+              <button class="btn btn-ghost" id="release-again">Write more</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-tint" id="pricing">
+      <div class="wrap">
+        <p class="eyebrow">Pricing</p>
+        <h2>Affordable support</h2>
+        <p class="section-lead">No hidden fees. No subscriptions unless you want one.</p>
+        <div class="grid-3">
+          <article class="price-card">
+            <h3>Quick Vent</h3>
+            <p class="muted">25 minutes</p>
+            <p class="price">$25 <span>/ session</span></p>
+            <ul class="ticks">
+              <li>One-on-one session</li>
+              <li>Video, voice or chat</li>
+              <li>100% confidential</li>
+            </ul>
+            <button class="btn btn-soft btn-block" data-book="quick">Book now</button>
+          </article>
+          <article class="price-card featured">
+            <p class="badge">Most popular</p>
+            <h3>Deep Conversation</h3>
+            <p class="muted">55 minutes</p>
+            <p class="price">$45 <span>/ session</span></p>
+            <ul class="ticks">
+              <li>Extended session</li>
+              <li>Video, voice or chat</li>
+              <li>Follow-up summary</li>
+              <li>100% confidential</li>
+            </ul>
+            <button class="btn btn-primary btn-block" data-book="deep">Book now</button>
+          </article>
+          <article class="price-card">
+            <h3>Weekly Check-in</h3>
+            <p class="muted">4 × 25 minutes</p>
+            <p class="price">$90 <span>/ month</span></p>
+            <ul class="ticks">
+              <li>Best value</li>
+              <li>Consistent support</li>
+              <li>Flexible scheduling</li>
+            </ul>
+            <button class="btn btn-soft btn-block" data-book="weekly">Book now</button>
+          </article>
+        </div>
+        <div class="pay">
+          <p><strong>Pay from anywhere.</strong> After booking, your email includes step-by-step payment instructions.</p>
+          <ul class="pay-list">
+            <li><b>Payoneer</b> Bank transfer to a USD account, from almost any country</li>
+            <li><b>WorldRemit / Remitly</b> Send to M-Pesa, arrives in minutes</li>
+            <li><b>NALA</b> Popular with European clients, instant to M-Pesa</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="words">
+      <div class="wrap">
+        <p class="eyebrow">Kind words</p>
+        <h2>What people say</h2>
+        <div class="grid-3">
+          <figure class="quote">
+            <blockquote>"I just needed someone to talk to with zero judgment. SafeEar gave me exactly that. I felt so much lighter after."</blockquote>
+            <figcaption>Sarah, 31 <span>United States</span></figcaption>
+          </figure>
+          <figure class="quote">
+            <blockquote>"I was skeptical at first, but it genuinely helped. Knowing someone is just there to listen, with no agenda, is powerful."</blockquote>
+            <figcaption>Marcus, 28 <span>United Kingdom</span></figcaption>
+          </figure>
+          <figure class="quote">
+            <blockquote>"I've done therapy before but sometimes you just want to vent. This is perfect for those moments."</blockquote>
+            <figcaption>Lena, 35 <span>Germany</span></figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap">
+      <div class="cta">
+        <h2>Ready to be heard?</h2>
+        <p>Your first 10 minutes are free, with no commitment and no pressure.</p>
+        <button class="btn btn-light btn-lg" data-book="intro">Book a free intro call <span aria-hidden="true">→</span></button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap footer">
+    <p class="disclaimer">SafeEar is a peer support and active listening service. We are not licensed therapists or mental health professionals, and this is not a substitute for professional care. <strong>If you are in crisis</strong>, please contact emergency services or find a free helpline at <a href="https://findahelpline.com" target="_blank" rel="noopener">findahelpline.com</a>.</p>
+    <div class="footer-row">
+      <button class="logo logo-sm" aria-label="SafeEar">Safe<span>Ear</span></button>
+      <span>© <span id="year">2026</span> SafeEar · <a href="mailto:safeear97@gmail.com">safeear97@gmail.com</a></span>
+    </div>
+  </footer>
+
+  <div id="booking-root"></div>
+
+  <!-- Netlify detects this form at deploy time. Field names must match js/booking-submit.js. -->
+  <form name="booking" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="hidden" name="form-name" value="booking" />
+    <input name="bot-field" />
+    <input name="client_name" />
+    <input name="client_email" />
+    <input name="session_name" />
+    <input name="duration" />
+    <input name="price" />
+    <input name="date" />
+    <input name="client_time" />
+    <input name="operator_time" />
+    <input name="call_type" />
+    <input name="method" />
+    <input name="platform" />
+    <textarea name="note"></textarea>
+    <textarea name="summary"></textarea>
+  </form>
+
+  <script src="/js/config.js"></script>
+  <script src="/js/time.js"></script>
+  <script src="/js/booking-submit.js"></script>
+  <script src="/js/booking.js"></script>
+  <script src="/js/site.js"></script>
+</body>
 </html>
