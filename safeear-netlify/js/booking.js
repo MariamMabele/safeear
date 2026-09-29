@@ -22,6 +22,8 @@ class BookingFlow {
     };
     this.isOpen = true;
     document.body.classList.add('no-scroll');
+    this.mountShell();
+    this.view = null;
     this.render();
     this.root.querySelector('.sheet').focus();
   }
@@ -64,7 +66,6 @@ class BookingFlow {
   go(step) {
     this.state.step = step;
     this.render();
-    this.root.querySelector('.sheet-body').scrollTop = 0;
   }
 
   canContinue() {
@@ -96,17 +97,39 @@ class BookingFlow {
     };
   }
 
-  render() {
-    const s = this.state;
-    const body = s.result ? this.resultView() : [this.stepWhat, this.stepWhen, this.stepDetails][s.step - 1].call(this);
+  // The shell is built once so its open animation plays only once.
+  mountShell() {
     this.root.innerHTML = `
       <div class="sheet-backdrop">
         <div class="sheet" role="dialog" aria-modal="true" aria-label="Book a session" tabindex="-1">
-          ${s.result ? '' : this.headerView()}
-          <div class="sheet-body">${body}</div>
-          ${s.result ? '' : this.footerView()}
+          <div data-part="head"></div>
+          <div class="sheet-body"></div>
+          <div data-part="foot"></div>
         </div>
       </div>`;
+    this.parts = {
+      head: this.root.querySelector('[data-part="head"]'),
+      body: this.root.querySelector('.sheet-body'),
+      foot: this.root.querySelector('[data-part="foot"]'),
+    };
+  }
+
+  // Updates only the contents, keeping scroll position and keyboard focus.
+  render() {
+    const s = this.state;
+    const { head, body, foot } = this.parts;
+    const focused = document.activeElement?.closest?.('[data-act]');
+    const focusKey = focused && `[data-act="${focused.dataset.act}"]${focused.dataset.val ? `[data-val="${focused.dataset.val}"]` : ''}`;
+    const view = s.result || s.step;
+    const scroll = view === this.view ? body.scrollTop : 0;
+    this.view = view;
+
+    head.innerHTML = s.result ? '' : this.headerView();
+    body.innerHTML = s.result ? this.resultView() : [this.stepWhat, this.stepWhen, this.stepDetails][s.step - 1].call(this);
+    foot.innerHTML = s.result ? '' : this.footerView();
+
+    body.scrollTop = scroll;
+    if (focusKey) this.root.querySelector(focusKey)?.focus({ preventScroll: true });
   }
 
   headerView() {
